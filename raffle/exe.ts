@@ -1,25 +1,29 @@
 import {
   TYPE_ID,
   RAFFLE_CENTER_ID,
-  SETTLE_TARGET,
-  LOOTBOX_OBJ,
-  TROVE_MANAGER_OBJ,
-  getRaffleEpoch,
-  RAFFLE_TARGET,
-  GAME_STATUS_OBJ,
-  CLOCK_OBJ,
-  COIN_TYPES,
+  LOOTBOX_POOL,
+  TROVE_MANAGER,
+  GAME_STATUS,
+  CLOCK,
+} from "../contract/deployments";
+import { COIN_TYPES } from "../contract/settings";
+import { getRaffleEpoch } from "../lib/utils";
+import {
   DESTROY_TARGET,
-  houseSigner,
+  RAFFLE_TARGET,
+  SETTLE_TARGET,
+  HOUSE_SIGNER,
+  LOOP_PERIOD,
 } from "./config";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import dotenv from "dotenv";
 dotenv.config();
 
-async function settle() {
-  console.log(new Date());
-  const currentEpoch = getRaffleEpoch(new Date().valueOf());
-  const epochesRes = await houseSigner.suiClient.getDynamicFields({
+async function raffle() {
+  const curretTime = new Date();
+  console.log(curretTime);
+  const currentEpoch = getRaffleEpoch(curretTime.valueOf());
+  const epochesRes = await HOUSE_SIGNER.suiClient.getDynamicFields({
     parentId: RAFFLE_CENTER_ID,
   });
   // console.log(epochesRes.data);
@@ -31,22 +35,18 @@ async function settle() {
     return;
   }
   const tx = new TransactionBlock();
-  tx.setGasBudget(500_000_000);
-  tx.setGasOwner(houseSigner.getSuiAddress());
-  tx.setGasPrice(1_000);
-  tx.setSender(houseSigner.getSuiAddress());
   await Promise.all(
     unsettledEpoches.map(async (epochData) => {
       const epoch = Number(epochData.name.value);
-      const blsSig = await houseSigner.blsSign(
+      const blsSig = await HOUSE_SIGNER.blsSign(
         Buffer.from(epochData.objectId.slice(2), "hex").toString("hex"),
       );
       tx.moveCall({
         target: RAFFLE_TARGET,
         arguments: [
-          tx.sharedObjectRef(LOOTBOX_OBJ),
-          tx.sharedObjectRef(GAME_STATUS_OBJ),
-          tx.sharedObjectRef(CLOCK_OBJ),
+          tx.sharedObjectRef(LOOTBOX_POOL),
+          tx.sharedObjectRef(GAME_STATUS),
+          tx.sharedObjectRef(CLOCK),
           tx.pure.u64(epoch),
           tx.pure(Array.from(blsSig), "vector<u8>"),
         ],
@@ -56,20 +56,20 @@ async function settle() {
           target: SETTLE_TARGET,
           typeArguments: [coinType],
           arguments: [
-            tx.sharedObjectRef(LOOTBOX_OBJ),
-            tx.sharedObjectRef(TROVE_MANAGER_OBJ),
+            tx.sharedObjectRef(LOOTBOX_POOL),
+            tx.sharedObjectRef(TROVE_MANAGER),
             tx.pure.u64(epoch),
           ],
         }),
       );
       tx.moveCall({
         target: DESTROY_TARGET,
-        arguments: [tx.sharedObjectRef(LOOTBOX_OBJ), tx.pure.u64(epoch)],
+        arguments: [tx.sharedObjectRef(LOOTBOX_POOL), tx.pure.u64(epoch)],
       });
     }),
   );
 
-  const txRes = await houseSigner.signAndExecuteTransactionBlock({
+  const txRes = await HOUSE_SIGNER.signAndExecuteTransactionBlock({
     transactionBlock: tx,
     options: {
       showEvents: true,
@@ -83,8 +83,8 @@ async function settle() {
 }
 
 async function main() {
-  settle();
-  setInterval(settle, 60_000 * 5);
+  raffle();
+  setInterval(raffle, LOOP_PERIOD);
 }
 
 main().catch((err) => console.log(err));
