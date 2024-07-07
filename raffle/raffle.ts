@@ -68,22 +68,27 @@ async function raffle() {
     }),
   );
 
-  const txRes = await HOUSE_SIGNER.signAndExecuteTransactionBlock({
-    transactionBlock: tx,
-    options: {
-      showEvents: true,
-    },
-  });
-  const resultEvents =
-    txRes.events?.filter(
-      (e) => e.type === `${TYPE_ID}::lootbox::RaffleResult`,
-    ) ?? [];
-  console.log(`settle ${resultEvents.length} epoches`);
+  try {
+    const txRes = await HOUSE_SIGNER.signAndExecuteTransactionBlock({
+      transactionBlock: tx,
+      options: {
+        showEvents: true,
+      },
+    });
+    const resultEvents =
+      txRes.events?.filter(
+        (e) => e.type === `${TYPE_ID}::lootbox::RaffleResult`,
+      ) ?? [];
+    console.log(`settle ${resultEvents.length} epoches`);
+  } catch (err) {
+    console.log(err);
+  }
 }
 
-async function main() {
+function main() {
   raffle();
   setInterval(raffle, LOOP_PERIOD);
 }
 
-main().catch((err) => console.log(err));
+main();
+// main().catch((err) => console.log(err));

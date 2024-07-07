@@ -29,7 +29,7 @@ export class HouseSigner {
   }
 
   getSuiAddress(): string {
-    return this.suiKeypair.getPublicKey().toSuiAddress();
+    return this.suiKeypair.toSuiAddress();
   }
 
   getBlsPublicKey(): Uint8Array {

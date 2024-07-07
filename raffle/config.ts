@@ -1,5 +1,5 @@
 import { PACKAGE_ID } from "../contract/deployments";
-import { HouseSigner } from "../lib/houseSigner";
+import { HouseSigner } from "../lib/house";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -12,7 +12,7 @@ export const HOUSE_SIGNER = new HouseSigner({
   blsSecretKey: process.env.BLS_SECRET_KEY ?? "",
 });
 
-export const LOOP_PERIOD = 60_000 * 5; // 5 mins
+export const LOOP_PERIOD = 5 * 60_000; // 5 mins
 
 function main() {
   console.log(HOUSE_SIGNER.getSuiAddress());
