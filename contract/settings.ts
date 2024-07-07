@@ -1,4 +1,4 @@
-export const START_TIME = 1715335200000;
+export const START_TIME = 1720368000000;
 export const RAFFLE_PERIOD = 2 * 60 * 60_000; // 2 hrs
 
 export const COIN_TYPES = [
