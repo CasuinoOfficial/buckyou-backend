@@ -26,14 +26,10 @@ async function raffle() {
   const epochesRes = await HOUSE_SIGNER.suiClient.getDynamicFields({
     parentId: RAFFLE_CENTER_ID,
   });
-  console.log(epochesRes.data.map((res) => res.name.value));
-  console.log(currentEpoch);
-  return;
   const unsettledEpoches = epochesRes.data
     .filter((epochData) => Number(epochData.name.value) < currentEpoch)
     .sort((e1, e2) => Number(e1.name.value) - Number(e2.name.value));
   if (unsettledEpoches.length === 0) {
-    console.log("nothing to settle");
     return;
   }
   const tx = new TransactionBlock();
@@ -82,7 +78,9 @@ async function raffle() {
       txRes.events?.filter(
         (e) => e.type === `${TYPE_ID}::lootbox::RaffleResult`,
       ) ?? [];
-    console.log(`settle ${resultEvents.length} epoches`);
+    console.log(
+      `settle ${resultEvents.length} epoches: ${resultEvents.map((e) => (e.parsedJson as any).epoch)}`,
+    );
   } catch (err) {
     console.log(err);
   }
