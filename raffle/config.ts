@@ -3,9 +3,9 @@ import { HouseSigner } from "../lib/house";
 import dotenv from "dotenv";
 dotenv.config();
 
-export const RAFFLE_TARGET = `${PACKAGE_ID}::lootbox::raffle`;
-export const SETTLE_TARGET = `${PACKAGE_ID}::lootbox::settle`;
-export const DESTROY_TARGET = `${PACKAGE_ID}::lootbox::destroy`;
+export const RAFFLE_TARGET: `${string}::${string}::${string}` = `${PACKAGE_ID}::lootbox::raffle`;
+export const SETTLE_TARGET: `${string}::${string}::${string}` = `${PACKAGE_ID}::lootbox::settle`;
+export const DESTROY_TARGET: `${string}::${string}::${string}` = `${PACKAGE_ID}::lootbox::destroy`;
 
 export const HOUSE_SIGNER = new HouseSigner({
   suiSecretKey: process.env.SUI_SECRET_KEY ?? "",
