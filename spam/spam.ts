@@ -163,35 +163,38 @@ async function claimSeat() {
       });
     });
   }
-  const txRes = await CLIENT.signAndExecuteTransactionBlock({
-    transactionBlock: tx,
-    signer: SIGNER,
-    options: {
-      showEvents: true,
-      showBalanceChanges: true,
-    },
-  });
-  if (currentTime < endTime) {
-    const [event] =
-      txRes.events?.filter(
-        (e) => e.type === `${TYPE_ID}::game_status::NewEndTime`,
-      ) ?? [];
-    // console.log(event);
-    if (event) {
-      console.log(
-        "end time:",
-        new Date(Number((event.parsedJson as any).ms)).toLocaleString(),
-      );
-    } else {
-      console.log("end time:", new Date(endTime).toLocaleString());
-    }
-  } else {
-    txRes.balanceChanges?.map((change) => {
-      const amount = Number(change.amount);
-      if (amount > 0) {
-        console.log(change.owner, change.coinType.split("::")[2], amount);
-      }
+  try {
+    const txRes = await CLIENT.signAndExecuteTransactionBlock({
+      transactionBlock: tx,
+      signer: SIGNER,
+      options: {
+        showEvents: true,
+        showBalanceChanges: true,
+      },
     });
+    if (currentTime < endTime) {
+      const [event] =
+        txRes.events?.filter(
+          (e) => e.type === `${TYPE_ID}::game_status::NewEndTime`,
+        ) ?? [];
+      if (event) {
+        console.log(
+          "end time:",
+          new Date(Number((event.parsedJson as any).ms)).toLocaleString(),
+        );
+      } else {
+        console.log("end time:", new Date(endTime).toLocaleString());
+      }
+    } else {
+      txRes.balanceChanges?.map((change) => {
+        const amount = Number(change.amount);
+        if (amount > 0) {
+          console.log(change.owner, change.coinType.split("::")[2], amount);
+        }
+      });
+    }
+  } catch (err) {
+    console.error(err);
   }
 }
 
