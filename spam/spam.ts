@@ -10,7 +10,7 @@ import {
   COIN_TYPE_WHITELIST,
   ORACLE,
 } from "../contract/deployments";
-import { COIN_TYPES, RAFFLE_PERIOD, START_TIME } from "../contract/settings";
+import { COIN_TYPES, START_TIME } from "../contract/settings";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { CLIENT, REFERRER_ADDRESS, SIGNER } from "./config";
 import { SuiObjectRef } from "@mysten/sui.js/client";
@@ -52,11 +52,6 @@ async function claimSeat() {
   const currentTime = new Date().valueOf();
   const endTime = await getEndTime();
   const signerAddr = SIGNER.toSuiAddress();
-  const ticketPrice =
-    currentTime < CLIFF_TIME
-      ? 2_000_000_000
-      : 2_000_000_000 +
-        Math.floor((currentTime - CLIFF_TIME) / RAFFLE_PERIOD) * 1_000_000_000;
   const ticket = await getTicket(signerAddr);
   const tx = new TransactionBlock();
   const clockObj = tx.sharedObjectRef(CLOCK);
