@@ -12,7 +12,7 @@ export const HOUSE_SIGNER = new HouseSigner({
   blsSecretKey: process.env.BLS_SECRET_KEY ?? "",
 });
 
-export const LOOP_PERIOD = 5 * 60_000; // 5 mins
+export const LOOP_PERIOD = 10 * 60_000; // 10 mins
 
 function main() {
   console.log(HOUSE_SIGNER.getSuiAddress());
