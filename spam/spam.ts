@@ -100,7 +100,7 @@ async function claimSeat() {
   const profileManagerObj = tx.sharedObjectRef(REFERRAL_MANAGER);
   if (currentTime < endTime) {
     console.log("time left:", (endTime - currentTime) / 1_000);
-    if (endTime - currentTime > 600_000) return;
+    if (endTime - currentTime > 30_000) return;
     if (ticket) {
       tx.moveCall({
         target: `${PACKAGE_ID}::ticket::open`,
