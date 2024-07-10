@@ -75,7 +75,7 @@ async function getTicket(owner: string): Promise<Ticket | undefined> {
       showType: true,
     },
   });
-  console.log("ticket count:", res.data.length);
+  // console.log("ticket count:", res.data.length);
   const ticketRef = res.data[0].data;
   if (ticketRef) {
     const [coinType] = getFirstLayerGenerics(ticketRef.type ?? "");
@@ -99,7 +99,7 @@ async function claimSeat() {
   const gameStatusObj = tx.sharedObjectRef(GAME_STATUS);
   const profileManagerObj = tx.sharedObjectRef(REFERRAL_MANAGER);
   if (currentTime < endTime) {
-    console.log("time left:", (endTime - currentTime) / 1_000);
+    // console.log("time left:", (endTime - currentTime) / 1_000);
     if (endTime - currentTime > 30_000) return;
     if (ticket) {
       tx.moveCall({
@@ -176,7 +176,7 @@ async function claimSeat() {
       txRes.events?.filter(
         (e) => e.type === `${TYPE_ID}::game_status::NewEndTime`,
       ) ?? [];
-    console.log(event);
+    // console.log(event);
     if (event) {
       console.log(
         "end time:",
