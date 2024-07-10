@@ -153,10 +153,10 @@ async function claimSeat() {
   }
 }
 
-async function main() {
+function main() {
   console.log(SIGNER.toSuiAddress());
   claimSeat();
   setInterval(claimSeat, 25_000);
 }
 
-main().catch((err) => console.log(err));
+main();
