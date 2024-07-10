@@ -68,11 +68,14 @@ async function getEndTime(): Promise<number> {
 async function getTicket(owner: string): Promise<Ticket | undefined> {
   const res = await CLIENT.getOwnedObjects({
     owner,
+    filter: {
+      StructType: `${PACKAGE_ID}::ticket::Ticket`,
+    },
     options: {
       showType: true,
     },
   });
-  // console.log("ticket count:", res.data.length);
+  console.log("ticket count:", res.data.length);
   const ticketRef = res.data[0].data;
   if (ticketRef) {
     const [coinType] = getFirstLayerGenerics(ticketRef.type ?? "");
@@ -96,8 +99,8 @@ async function claimSeat() {
   const gameStatusObj = tx.sharedObjectRef(GAME_STATUS);
   const profileManagerObj = tx.sharedObjectRef(REFERRAL_MANAGER);
   if (currentTime < endTime) {
-    // console.log("time left:", (endTime - currentTime) / 1_000);
-    if (endTime - currentTime > 30_000) return;
+    console.log("time left:", (endTime - currentTime) / 1_000);
+    if (endTime - currentTime > 600_000) return;
     if (ticket) {
       tx.moveCall({
         target: `${PACKAGE_ID}::ticket::open`,
@@ -173,10 +176,11 @@ async function claimSeat() {
       txRes.events?.filter(
         (e) => e.type === `${TYPE_ID}::game_status::NewEndTime`,
       ) ?? [];
+    console.log(event);
     if (event) {
       console.log(
         "end time:",
-        new Date((event.parsedJson as any).ms).toLocaleString(),
+        new Date(Number((event.parsedJson as any).ms)).toLocaleString(),
       );
     } else {
       console.log("end time:", new Date(endTime).toLocaleString());
