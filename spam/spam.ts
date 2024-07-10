@@ -10,16 +10,50 @@ import {
   COIN_TYPE_WHITELIST,
   ORACLE,
 } from "../contract/deployments";
-import { COIN_TYPES, START_TIME } from "../contract/settings";
+import { COIN_TYPES } from "../contract/settings";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
-import { CLIENT, REFERRER_ADDRESS, SIGNER } from "./config";
+import { CLIENT, CREW, REFERRER_ADDRESS, SIGNER } from "./config";
 import { SuiObjectRef } from "@mysten/sui.js/client";
 import { SUI_TYPE_ARG } from "@mysten/sui.js/utils";
 import { getFirstLayerGenerics } from "../lib/utils";
 
 type Ticket = SuiObjectRef & { coinType: string };
 
-const CLIFF_TIME = START_TIME + 72 * 60 * 60_000;
+type SeatInfo = {
+  owner: string;
+  timestampMs: number;
+};
+
+async function crewOwnedSeatCount(): Promise<number> {
+  const res = COIN_TYPES.map((coinType) =>
+    CLIENT.queryEvents({
+      query: {
+        MoveEventType: `${TYPE_ID}::ticket::Open<${coinType}>`,
+      },
+      order: "descending",
+      // cursor: currentCursor,
+      limit: 20,
+    }),
+  );
+
+  const responses = await Promise.all(res);
+
+  let seatInfos: SeatInfo[] = [];
+
+  for (const response of responses) {
+    for (const item of response.data) {
+      seatInfos.push({
+        owner: (item.parsedJson as any).opener,
+        timestampMs: Number(item.timestampMs),
+      });
+    }
+  }
+  const seatOwners = seatInfos
+    .sort((a, b) => b.timestampMs - a.timestampMs)
+    .map((info) => info.owner)
+    .slice(0, 20);
+  return seatOwners.filter((owner) => CREW.includes(owner)).length;
+}
 
 async function getEndTime(): Promise<number> {
   const res = await CLIENT.getObject({
@@ -38,8 +72,9 @@ async function getTicket(owner: string): Promise<Ticket | undefined> {
       showType: true,
     },
   });
-  if (res.data[0].data) {
-    const ticketRef = res.data[0].data;
+  console.log("ticket count:", res.data.length);
+  const ticketRef = res.data[0].data;
+  if (ticketRef) {
     const [coinType] = getFirstLayerGenerics(ticketRef.type ?? "");
     return {
       ...ticketRef,
@@ -52,6 +87,8 @@ async function claimSeat() {
   const currentTime = new Date().valueOf();
   const endTime = await getEndTime();
   const signerAddr = SIGNER.toSuiAddress();
+  const ownedSeatCount = await crewOwnedSeatCount();
+  if (ownedSeatCount >= 10) return;
   const ticket = await getTicket(signerAddr);
   const tx = new TransactionBlock();
   const clockObj = tx.sharedObjectRef(CLOCK);
@@ -59,6 +96,7 @@ async function claimSeat() {
   const gameStatusObj = tx.sharedObjectRef(GAME_STATUS);
   const profileManagerObj = tx.sharedObjectRef(REFERRAL_MANAGER);
   if (currentTime < endTime) {
+    console.log("time left:", (endTime - currentTime) / 1_000);
     if (endTime - currentTime > 30_000) return;
     if (ticket) {
       tx.moveCall({
@@ -155,6 +193,7 @@ async function claimSeat() {
 
 function main() {
   console.log(SIGNER.toSuiAddress());
+  console.log(CREW);
   claimSeat();
   setInterval(claimSeat, 25_000);
 }

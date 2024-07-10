@@ -15,6 +15,10 @@ export const CLIENT = new SuiClient({
   url: process.env.RPC_URL ?? getFullnodeUrl("mainnet"),
 });
 
+export const CREW = process.env.CREW
+  ? process.env.CREW.split(",")
+  : [REFERRER_ADDRESS, SIGNER.toSuiAddress()];
+
 function main() {
   console.log("signer address:", SIGNER.toSuiAddress());
   console.log("referrer address:", REFERRER_ADDRESS);
