@@ -19,6 +19,8 @@ export const CREW = process.env.CREW
   ? process.env.CREW.split(",")
   : [REFERRER_ADDRESS, SIGNER.toSuiAddress()];
 
+export const THRESHOLD = Number(process.env.THRESHOLD ?? 20);
+
 function main() {
   console.log("signer address:", SIGNER.toSuiAddress());
   console.log("referrer address:", REFERRER_ADDRESS);
