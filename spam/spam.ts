@@ -12,7 +12,15 @@ import {
 } from "../contract/deployments";
 import { COIN_TYPES } from "../contract/settings";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
-import { CLIENT, CREW, REFERRER_ADDRESS, SIGNER, THRESHOLD } from "./config";
+import {
+  CLIENT,
+  CREW,
+  LOG,
+  LOOP_PERIOD,
+  REFERRER_ADDRESS,
+  SIGNER,
+  THRESHOLD,
+} from "./config";
 import { SuiObjectRef } from "@mysten/sui.js/client";
 import { SUI_TYPE_ARG } from "@mysten/sui.js/utils";
 import { getFirstLayerGenerics } from "../lib/utils";
@@ -75,7 +83,7 @@ async function getTicket(owner: string): Promise<Ticket | undefined> {
       showType: true,
     },
   });
-  // console.log("ticket count:", res.data.length);
+  if (LOG) console.log("ticket count:", res.data.length);
   const ticketRef = res.data[0].data;
   if (ticketRef) {
     const [coinType] = getFirstLayerGenerics(ticketRef.type ?? "");
@@ -99,8 +107,8 @@ async function claimSeat() {
   const gameStatusObj = tx.sharedObjectRef(GAME_STATUS);
   const profileManagerObj = tx.sharedObjectRef(REFERRAL_MANAGER);
   if (currentTime < endTime) {
-    // console.log("time left:", (endTime - currentTime) / 1_000);
-    if (endTime - currentTime > 30_000) return;
+    if (LOG) console.log("time left:", (endTime - currentTime) / 1_000);
+    if (endTime - currentTime > LOOP_PERIOD + 5_000) return;
     if (ticket) {
       tx.moveCall({
         target: `${PACKAGE_ID}::ticket::open`,
@@ -203,7 +211,7 @@ function main() {
   console.log(CREW);
   console.log(THRESHOLD);
   claimSeat();
-  setInterval(claimSeat, 25_000);
+  setInterval(claimSeat, LOOP_PERIOD);
 }
 
 main();
